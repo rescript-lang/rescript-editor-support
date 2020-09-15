@@ -28,7 +28,7 @@ let getOutput = (~projectDir, files, mainFile) => {
       | _ => ()
     };
     switch result {
-      | Success(_, {extra}) => Log.log(SharedTypes.showExtra(extra));
+      | Success(_, {extra}, _) => Log.log(SharedTypes.showExtra(extra));
       | TypeError(text, _) => {
         print_endline("Module: " ++ modname);
         print_endline(text);

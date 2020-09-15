@@ -356,7 +356,7 @@ let handlers: list((string, (state, Json.t) => result((state, Json.t), string)))
 
       let items = {
         let full = switch (State.getCompilationResult(uri, state, ~package)) {
-          | Ok(Success(_, full)) => {
+          | Ok(Success(_, full, _)) => {
             Ok(Some(full))
           }
           | Ok(_) => Ok(State.getLastDefinitions(uri, state))

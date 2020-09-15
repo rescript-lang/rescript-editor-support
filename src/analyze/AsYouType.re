@@ -3,7 +3,7 @@ type result =
   /* | ParseError(string) */
   | SyntaxError(string, string, SharedTypes.full)
   | TypeError(string, SharedTypes.full)
-  | Success(string, SharedTypes.full)
+  | Success(string, SharedTypes.full, float)
 ;
 open Infix;
 open RResult;
@@ -12,7 +12,7 @@ open RResult;
 let getResult = result => switch result {
 | SyntaxError(_, _, data) => data
 | TypeError(_, data) => data
-| Success(_, data) => data
+| Success(_, data, _) => data
 };
 
 let runRefmt = (~interface, ~moduleName, ~cacheLocation, text, refmt) => {
@@ -196,47 +196,63 @@ let process = (~uri, ~moduleName, ~basePath, ~reasonFormat, text, ~cacheLocation
     | V408 => Process_408.fullForCmt
   })(~moduleName, ~allLocations);
   let cmtPath = cacheLocation /+ moduleName ++ ".cmt" ++ (interface ? "i" : "");
-  try (Unix.unlink(cmtPath)) { | _ => ()};
-  switch (runBsc(~basePath, ~interface, ~reasonFormat, ~command="-c", compilerPath, astFile, includes, flags)) {
-    | Error(lines) => {
-      if (!Files.isFile(cmtPath)) {
-        Ok(TypeError(String.concat("\n", lines), SharedTypes.initFull(moduleName, uri)))
-      } else {
-        Log.log("Now loading " ++ cmtPath);
-        switch (Files.maybeStat(cmtPath)) {
-        | Some({Unix.st_size: size}) => Log.log("Size " ++ string_of_int(size))
-        | _ => Log.log("Doesn't exist")
-        };
-        let%try_wrap {file, extra} = fullForCmt(cmtPath, uri, x => x);
-        let errorText = String.concat("\n", lines);
-        switch (syntaxError) {
-          | Some(s) =>
-            /** TODO also report the type errors / warnings from the partial result */
-            SyntaxError(String.concat("\n", s), errorText, {file, extra})
-          | None => {
-            let errorText = switch (ErrorParser.parseDependencyError(errorText)) {
-              | Some((name, _oname, _iface)) => errorText ++ "\n\nThis is likely due to an error in module " ++ name
-              | None => errorText
-            };
-            TypeError(errorText, {file, extra})
+  if (res) {
+    let cmtPath =
+      basePath /+ "lib" /+ "bs" /+ "src" /+ moduleName ++ ".cmt" ++ (interface ? "i" : "");
+    let mtime = switch (Files.maybeStat(cmtPath)) {
+      | Some({Unix.st_mtime}) => st_mtime
+      | _ => 0.0
+    };
+    let%try_wrap full = fullForCmt(cmtPath, uri, x => x);
+    Success("", full, mtime)
+  }
+  else {
+    try (Unix.unlink(cmtPath)) { | _ => ()} ;
+    switch (runBsc(~basePath, ~interface, ~reasonFormat, ~command="-c", compilerPath, astFile, includes, flags)) {
+      | Error(lines) => {
+        if (!Files.isFile(cmtPath)) {
+          Ok(TypeError(String.concat("\n", lines), SharedTypes.initFull(moduleName, uri)))
+        } else {
+          Log.log("Now loading " ++ cmtPath);
+          switch (Files.maybeStat(cmtPath)) {
+          | Some({Unix.st_size: size}) => Log.log("Size " ++ string_of_int(size))
+          | _ => Log.log("Doesn't exist")
+          };
+          let%try_wrap {file, extra} = fullForCmt(cmtPath, uri, x => x);
+          let errorText = String.concat("\n", lines);
+          switch (syntaxError) {
+            | Some(s) =>
+              /** TODO also report the type errors / warnings from the partial result */
+              SyntaxError(String.concat("\n", s), errorText, {file, extra})
+            | None => {
+              let errorText = switch (ErrorParser.parseDependencyError(errorText)) {
+                | Some((name, _oname, _iface)) => errorText ++ "\n\nThis is likely due to an error in module " ++ name
+                | None => errorText
+              };
+              TypeError(errorText, {file, extra})
+            }
           }
         }
       }
-    }
-    | Ok((lines, error)) => {
-      // Log.log("Now loading " ++ cmtPath);
-      // switch (Files.maybeStat(cmtPath)) {
-      // | Some({Unix.st_size: size}) =>
-      // Log.log("Size " ++ string_of_int(size))
-      // let ic = open_in_bin(cmtPath);
-      // let buffer = really_input_string(ic,String.length(Config.cmi_magic_number));
-      // Log.log(buffer);
-      // Log.log(Config.cmi_magic_number);
-      // close_in(ic);
-      // | _ => Log.log("Doesn't exist")
-      // };
-      let%try_wrap full = fullForCmt(cmtPath, uri, x => x);
-      Success(String.concat("\n", (res ? [] : lines) @  error), full)
+      | Ok((lines, error)) => {
+        // Log.log("Now loading " ++ cmtPath);
+        // switch (Files.maybeStat(cmtPath)) {
+        // | Some({Unix.st_size: size}) =>
+        // Log.log("Size " ++ string_of_int(size))
+        // let ic = open_in_bin(cmtPath);
+        // let buffer = really_input_string(ic,String.length(Config.cmi_magic_number));
+        // Log.log(buffer);
+        // Log.log(Config.cmi_magic_number);
+        // close_in(ic);
+        // | _ => Log.log("Doesn't exist")
+        // };
+        let mtime = switch (Files.maybeStat(cmtPath)) {
+          | Some({Unix.st_mtime}) => st_mtime
+          | _ => 0.0
+        };
+        let%try_wrap full = fullForCmt(cmtPath, uri, x => x);
+        Success(String.concat("\n", (res ? [] : lines) @  error), full, mtime)
+      }
     }
   }
 };

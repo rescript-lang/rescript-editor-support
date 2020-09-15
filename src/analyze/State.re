@@ -247,10 +247,29 @@ let getInterfaceFile = (uri, state, ~package: TopTypes.package) => {
   );
 };
 
+let checkMtime = (uri, state, ~package) => {
+    let%try path = Utils.parseUri(uri) |> RResult.orError("Not a uri");
+    let moduleName = BuildSystem.namespacedName(package.buildSystem, package.namespace, FindFiles.getName(path));
+    let interface = Utils.endsWith(uri, "i");
+    let cmtPath = package.basePath /+ "lib" /+ "bs" /+ "src" /+ moduleName ++ ".cmt" ++ (interface ? "i" : "");
+    let mtime = switch (Files.maybeStat(cmtPath)) {
+      | Some({Unix.st_mtime}) => st_mtime
+      | _ => 0.0
+    };
+    let res = Hashtbl.find(state.compiledDocuments, uri);
+    let resMtime = switch res {
+      | Success(_, _, mtime) => mtime
+      | _ => 0.0
+    };
+    Log.log("XXX getCompilationResult:cached mtime:" ++ (mtime == resMtime ? string_of_float(mtime) : "STALE!"));
+    Ok(mtime == resMtime)
+}
+
 let getCompilationResult = (uri, state, ~package: TopTypes.package) => {
-  if (Hashtbl.mem(state.compiledDocuments, uri)) {
+  if (Hashtbl.mem(state.compiledDocuments, uri) && checkMtime(uri, state, ~package)  == Ok(true)) {
     Belt.Result.Ok(Hashtbl.find(state.compiledDocuments, uri))
   } else {
+    Log.log("XXX getCompilationResult:create");
     let%try path = Utils.parseUri(uri) |> RResult.orError("Not a uri");
     let text = Hashtbl.mem(state.documentText, uri) ? {
       let (text, _, _) = Hashtbl.find(state.documentText, uri);
@@ -297,7 +316,7 @@ let getCompilationResult = (uri, state, ~package: TopTypes.package) => {
         Hashtbl.replace(state.lastDefinitions, uri, full)
       }
     }
-    | Success(_, full) => {
+    | Success(_, full, _) => {
       Log.log("<< Replacing lastDefinitions for " ++ uri);
 
       Hashtbl.replace(state.lastDefinitions, uri, full);
@@ -329,7 +348,7 @@ let getCompilationResult = (uri, state, ~package: TopTypes.package) => {
           let otherUri = Utils.toUri(src);
           switch (Hashtbl.find(state.compiledDocuments, otherUri)) {
             | exception Not_found => ()
-            | TypeError(_, {extra}) | Success(_, {extra}) => {
+            | TypeError(_, {extra}) | Success(_, {extra}, _) => {
               if (Hashtbl.mem(extra.externalReferences, moduleName)) {
                 Hashtbl.remove(state.compiledDocuments, otherUri);
                 Hashtbl.replace(state.documentTimers, otherUri, Unix.gettimeofday() +. 0.01);

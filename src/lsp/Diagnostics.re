@@ -52,7 +52,7 @@ let runDiagnostics = (uri, state, ~package) => {
       let errors = ErrorParser.parseErrors(Utils.splitLines(Utils.stripAnsii(text))) @ errors;
       l(errors |. Belt.List.keepMap(makeDiagnostic(documentText)))
     }
-    | Success(text, _) => {
+    | Success(text, _, _) => {
       if (String.trim(text) == "") {
         l([])
       } else {

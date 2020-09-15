@@ -140,7 +140,7 @@ let processFile = (~state, ~uri, ~quiet) => {
     | Error(message) =>
       print_endline("  Invalid compilation result: " ++ message);
       Some((package, None));
-    | Ok(Success(_message, contents)) =>
+    | Ok(Success(_message, contents, _)) =>
       if (!quiet) {
         print_endline("  Good: " ++ uri);
       };

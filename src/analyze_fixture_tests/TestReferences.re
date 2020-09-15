@@ -14,7 +14,7 @@ let getOutput = (~projectDir, files, mainFile) => {
     let uri = TestUtils.uriForName(name);
     let%try_force result = State.getCompilationResult(uri, state, ~package);
     switch result {
-      | Success(_, {file, extra}) => {
+      | Success(_, {file, extra}, _) => {
         Log.log(uri);
         Log.log(SharedTypes.showExtra(extra));
 
