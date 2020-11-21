@@ -28,5 +28,6 @@
     "@opam/reason": "3.6.0",
     "@opam/uri": "3.1.0",
     "ocaml": "~4.6.1003"
-  }
+  },
+  "devDependencies": { "@opam/ocaml-lsp-server": "1.2.0" }
 }
