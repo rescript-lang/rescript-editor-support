@@ -65,6 +65,7 @@ let newHover =
   | TypeDefinition(name, decl, _stamp) =>
     let typeDef = Shared.declToString(name, decl);
     Some(codeBlock(~markdown, typeDef));
+  | LModule(Definition(stamp, _tip))
   | LModule(LocalReference(stamp, _tip)) =>
     let%opt md = Hashtbl.find_opt(file.stamps.modules, stamp);
     let%opt (file, declared) =
@@ -89,7 +90,7 @@ let newHover =
       | None => file.moduleName
       };
     showModule(~name, ~markdown, ~file, declared);
-  | LModule(_) => None
+  | LModule(NotFound) => None
   | TopLevelModule(name) =>
     let%opt file = getModule(name);
     showModule(~name=file.moduleName, ~markdown, ~file, None);
