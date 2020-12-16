@@ -1,22 +1,10 @@
 module J = JsonShort;
 
-let pos = (~line, ~character) =>
-  J.o([("line", J.i(line)), ("character", J.i(character))]);
-
-open Infix;
-
 let rgetPosition = pos => {
   open RResult.InfixResult;
   let%try line = RJson.get("line", pos) |?> RJson.number;
   let%try character = RJson.get("character", pos) |?> RJson.number;
   Ok((int_of_float(line), int_of_float(character)));
-};
-
-let rgetRange = pos => {
-  open RResult.InfixResult;
-  let%try start = RJson.get("start", pos) |?> rgetPosition;
-  let%try end_ = RJson.get("end", pos) |?> rgetPosition;
-  Ok((start, end_));
 };
 
 let rPositionParams = params => {
@@ -33,11 +21,8 @@ let posOfLexing = ({Lexing.pos_lnum, pos_cnum, pos_bol}) =>
     ("character", J.i(pos_cnum - pos_bol)),
   ]);
 
-let contentKind = (useMarkdown, text) =>
-  J.o([
-    ("kind", J.s(useMarkdown ? "markdown" : "text")),
-    ("value", J.s(text)),
-  ]);
+let contentKind = text =>
+  J.o([("kind", J.s("markdown")), ("value", J.s(text))]);
 
 let rangeOfLoc = ({Location.loc_start, loc_end}) =>
   J.o([("start", posOfLexing(loc_start)), ("end", posOfLexing(loc_end))]);
@@ -57,12 +42,6 @@ let locationOfLoc =
     ),
   ]);
 
-let rangeOfInts = (l0, c0, l1, c1) =>
-  J.o([
-    ("start", pos(~line=l0, ~character=c0)),
-    ("end", pos(~line=l1, ~character=c1)),
-  ]);
-
 let locationContains = ({Location.loc_start, loc_end}, pos) =>
   Utils.tupleOfLexing(loc_start) <= pos
   && Utils.tupleOfLexing(loc_end) >= pos;
@@ -80,11 +59,3 @@ let symbolKind = (kind: SharedTypes.kinds) =>
   | EnumMember => 22
   | TypeParameter => 26
   };
-
-/*
-   returns true if a MarkupKind[] contains "markdown"
- */
-let hasMarkdownCap = markupKind => {
-  let%opt kinds = Json.array(markupKind) |?>> optMap(Json.string);
-  Some(List.mem("markdown", kinds));
-};

@@ -19,7 +19,6 @@
 	"activationEvents": [
 		"onLanguage:reason",
 		"onLanguage:ocaml",
-		"onLanguage:reason_lisp",
 		"onLanguage:bucklescript"
 	],
 	"main": "./src/index",
@@ -28,18 +27,6 @@
 			{
 				"command": "reason-language-server.restart",
 				"title": "Restart Reason Language Server"
-			},
-			{
-				"command": "reason-language-server.show_ast",
-				"title": "Reason: Show the abstract syntax tree (AST) for this file."
-			},
-			{
-				"command": "reason-language-server.create_interface",
-				"title": "Reason: Create an interface file for this implementation file."
-			},
-			{
-				"command": "reason-language-server.dump_file_data",
-				"title": "Reason: dump data on the current file"
 			}
 		],
 		"snippets": [
@@ -71,42 +58,9 @@
 					},
 					"description": "Only specify this if build system autodetection isn't working for you (for example if you have a bsconfig.json, and a dune file in the same project). The keys in this object should be in uri format, e.g. file:///some/path/here"
 				},
-				"reason_language_server.refmt": {
-					"type": "string",
-					"description": "Provide a custom location for the refmt binary"
-				},
-				"reason_language_server.lispRefmt": {
-					"type": "string",
-					"description": "Provide a location for the reason-lisp lispRefmt binary"
-				},
 				"reason_language_server.mlfmt": {
 					"type": "string",
 					"description": "Provide a location for an .ml/.mli formatter"
-				},
-				"reason_language_server.format_width": {
-					"type": "number",
-					"default": 80,
-					"description": "Format width (default=80)"
-				},
-				"reason_language_server.per_value_codelens": {
-					"type": "boolean",
-					"default": false,
-					"description": "Show the type for each top-level value in a codelens"
-				},
-				"reason_language_server.dependencies_codelens": {
-					"type": "boolean",
-					"default": true,
-					"description": "Show the dependencies for a file at the top"
-				},
-				"reason_language_server.opens_codelens": {
-					"type": "boolean",
-					"default": true,
-					"description": "Indicate what values have been used from an open"
-				},
-				"reason_language_server.show_module_path_on_hover": {
-					"type": "boolean",
-					"default": true,
-					"description": "Show the module path on hover"
 				},
 				"reason_language_server.reloadOnChange": {
 					"type": "boolean",
@@ -117,11 +71,6 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Show errors in the console"
-				},
-				"reason_language_server.autoRebuild": {
-					"type": "boolean",
-					"default": true,
-					"description": "Enables autorun of bsb"
 				}
 			}
 		},
@@ -135,11 +84,6 @@
 				"language": "reason",
 				"scopeName": "source.reason",
 				"path": "./reason.json"
-			},
-			{
-				"language": "reason_lisp",
-				"scopeName": "source.reason_lisp",
-				"path": "./reason-lisp.json"
 			},
 			{
 				"scopeName": "markdown.reason.codeblock",
@@ -179,17 +123,6 @@
 					".mli"
 				],
 				"configuration": "./ocaml.configuration.json"
-			},
-			{
-				"id": "reason_lisp",
-				"aliases": [
-					"Reason Lisp"
-				],
-				"extensions": [
-					".rel",
-					".reli"
-				],
-				"configuration": "./reason-lisp.configuration.json"
 			},
 			{
 				"id": "bucklescript",

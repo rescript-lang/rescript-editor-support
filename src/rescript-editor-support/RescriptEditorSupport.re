@@ -11,25 +11,8 @@ let capabilities =
     ("typeDefinitionProvider", J.t),
     ("referencesProvider", J.t),
     ("documentSymbolProvider", J.t),
-    /*
-     * Found how to do the showReferences thing
-     * https://github.com/Microsoft/vscode/blob/c6b1114292288e76e2901e05e860faf3a08b4b5a/extensions/typescript-language-features/src/features/implementationsCodeLensProvider.ts
-     * but it seems I need to instantiate the object from javascript
-     */
-    ("codeActionProvider", J.t),
-    (
-      "executeCommandProvider",
-      J.o([
-        (
-          "commands",
-          J.l([J.s("reason-language-server.add_to_interface_inner")]),
-        ),
-      ]),
-    ),
     ("codeLensProvider", J.o([("resolveProvider", J.t)])),
     ("documentHighlightProvider", J.t),
-    ("documentRangeFormattingProvider", J.t),
-    ("documentFormattingProvider", J.t),
     ("renameProvider", J.t),
   ]);
 
@@ -70,35 +53,9 @@ let getInitialState = params => {
     ]),
   );
 
-  /* if client needs plain text in any place, we disable markdown everywhere */
-  let clientNeedsPlainText =
-    !
-      Infix.(
-        Json.getPath("capabilities.textDocument.hover.contentFormat", params)
-        |?> Protocol.hasMarkdownCap
-        |? true
-        && Json.getPath(
-             "capabilities.textDocument.completion.completionItem.documentationFormat",
-             params,
-           )
-        |?> Protocol.hasMarkdownCap
-        |? true
-      );
-
   let state = {...TopTypes.empty(), rootUri: uri};
 
-  Ok({
-    ...state,
-    settings: {
-      ...state.settings,
-      clientNeedsPlainText,
-    },
-  });
-};
-
-let tick = state => {
-  NotificationHandlers.checkPackageTimers(state);
-  Diagnostics.checkDocumentTimers(state);
+  Ok(state);
 };
 
 let parseArgs = args => {
@@ -157,7 +114,6 @@ let main = () => {
     };
     Log.log("Booting up");
     BasicServer.run(
-      ~tick,
       ~messageHandlers=MessageHandlers.handlers,
       ~notificationHandlers=NotificationHandlers.notificationHandlers,
       ~capabilities=_params => capabilities,

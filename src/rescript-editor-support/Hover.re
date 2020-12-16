@@ -12,19 +12,12 @@ let digConstructor = (~env, ~getModule, path) => {
   };
 };
 
-let codeBlock = (~markdown, code) =>
-  if (markdown) {
-    Printf.sprintf("```rescript\n%s\n```", code);
-  } else {
-    code;
-  };
+let codeBlock = code => {
+  Printf.sprintf("```rescript\n%s\n```", code);
+};
 
 let showModuleTopLevel =
-    (
-      ~name,
-      ~markdown,
-      topLevel: list(SharedTypes.declared(SharedTypes.moduleItem)),
-    ) => {
+    (~name, topLevel: list(SharedTypes.declared(SharedTypes.moduleItem))) => {
   let contents =
     topLevel
     |> List.map(item =>
@@ -39,32 +32,30 @@ let showModuleTopLevel =
        )
     |> String.concat("\n");
   let full = "module " ++ name ++ " = {" ++ "\n" ++ contents ++ "\n}";
-  Some(codeBlock(~markdown, full));
+  Some(codeBlock(full));
 };
 
 let showModule =
     (
-      ~markdown,
       ~file: SharedTypes.file,
       ~name,
       declared: option(SharedTypes.declared(SharedTypes.moduleKind)),
     ) => {
   switch (declared) {
-  | None => showModuleTopLevel(~name, ~markdown, file.contents.topLevel)
+  | None => showModuleTopLevel(~name, file.contents.topLevel)
   | Some({item: Structure({topLevel})}) =>
-    showModuleTopLevel(~name, ~markdown, topLevel)
+    showModuleTopLevel(~name, topLevel)
   | Some({item: Ident(_)}) => Some("Unable to resolve module reference")
   };
 };
 
 open Infix;
-let newHover =
-    (~rootUri, ~file: SharedTypes.file, ~getModule, ~markdown, ~showPath, loc) => {
+let newHover = (~rootUri, ~file: SharedTypes.file, ~getModule, loc) => {
   switch (loc) {
   | SharedTypes.Explanation(text) => Some(text)
   | TypeDefinition(name, decl, _stamp) =>
     let typeDef = Shared.declToString(name, decl);
-    Some(codeBlock(~markdown, typeDef));
+    Some(codeBlock(typeDef));
   | LModule(Definition(stamp, _tip))
   | LModule(LocalReference(stamp, _tip)) =>
     let%opt md = Hashtbl.find_opt(file.stamps.modules, stamp);
@@ -75,7 +66,7 @@ let newHover =
       | Some(d) => d.name.txt
       | None => file.moduleName
       };
-    showModule(~name, ~markdown, ~file, declared);
+    showModule(~name, ~file, declared);
   | LModule(GlobalReference(moduleName, path, tip)) =>
     let%opt file = getModule(moduleName);
     let env = {Query.file, exported: file.contents.exported};
@@ -89,11 +80,11 @@ let newHover =
       | Some(d) => d.name.txt
       | None => file.moduleName
       };
-    showModule(~name, ~markdown, ~file, declared);
+    showModule(~name, ~file, declared);
   | LModule(NotFound) => None
   | TopLevelModule(name) =>
     let%opt file = getModule(name);
-    showModule(~name=file.moduleName, ~markdown, ~file, None);
+    showModule(~name=file.moduleName, ~file, None);
   | Typed(_, Definition(_, Attribute(_) | Constructor(_))) => None
   | Constant(t) =>
     Some(
@@ -120,13 +111,13 @@ let newHover =
       /* Some(typ.toString()) */
     };
 
-    let typeString = codeBlock(~markdown, typeString);
+    let typeString = codeBlock(typeString);
     let typeString =
       typeString
       ++ (
         switch (extraTypeInfo) {
         | None => ""
-        | Some(extra) => "\n\n" ++ codeBlock(~markdown, extra)
+        | Some(extra) => "\n\n" ++ codeBlock(extra)
         }
       );
 
@@ -146,7 +137,6 @@ let newHover =
               Some(typeString),
               Some(
                 codeBlock(
-                  ~markdown,
                   txt
                   ++ "("
                   ++ (
@@ -165,7 +155,7 @@ let newHover =
           | `Attribute(_) => [Some(typeString), docstring]
           };
 
-        let parts = showPath ? parts @ [Some(uri)] : parts;
+        let parts = parts @ [Some(uri)];
 
         Some(String.concat("\n\n", parts |> Utils.filterMap(x => x)));
       }

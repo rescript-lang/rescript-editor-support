@@ -47,8 +47,6 @@ let dumpLocations = (state, ~package, ~file, ~extra, ~selectPos, uri) => {
              ~rootUri=state.TopTypes.rootUri,
              ~file,
              ~getModule=State.fileForModule(state, ~package),
-             ~markdown=!state.settings.clientNeedsPlainText,
-             ~showPath=state.settings.showModulePathOnHover,
              loc,
            );
          let hover =
@@ -61,7 +59,7 @@ let dumpLocations = (state, ~package, ~file, ~extra, ~selectPos, uri) => {
            References.definitionForLoc(
              ~pathsForModule=package.pathsForModule,
              ~file,
-             ~getUri=State.fileForUri(state, ~package),
+             ~getUri=State.fileForUri(state),
              ~getModule=State.fileForModule(state, ~package),
              loc,
            );
@@ -124,21 +122,14 @@ let dump = files => {
   Shared.cacheTypeToString := true;
   let rootPath = Unix.getcwd();
   let emptyState = TopTypes.empty();
-  let state = {
-    ...emptyState,
-    rootUri: Utils.toUri(rootPath),
-    settings: {
-      ...emptyState.settings,
-      autoRebuild: false,
-    },
-  };
+  let state = {...emptyState, rootUri: Utils.toUri(rootPath)};
   files
   |> List.iter(pathWithPos => {
        let (filePath, selectPos) = pathWithPos |> splitLineChar;
        let filePath = Files.maybeConcat(Unix.getcwd(), filePath);
        let uri = Utils.toUri(filePath);
        let result =
-         switch (State.getFullFromCmt(uri, state)) {
+         switch (State.getFullFromCmt(~state, ~uri)) {
          | Error(message) =>
            prerr_endline(message);
            "[]";
@@ -165,26 +156,18 @@ let autocomplete = (~currentFile, ~full, ~package, ~pos, ~state) => {
 let complete = (~pathWithPos, ~currentFile) => {
   let rootPath = Unix.getcwd();
   let emptyState = TopTypes.empty();
-  let state = {
-    ...emptyState,
-    rootUri: Utils.toUri(rootPath),
-    settings: {
-      ...emptyState.settings,
-      autoRebuild: false,
-    },
-  };
+  let state = {...emptyState, rootUri: Utils.toUri(rootPath)};
   switch (pathWithPos |> splitLineChar) {
   | (filePath, Some(pos)) =>
     let filePath = Files.maybeConcat(Unix.getcwd(), filePath);
     let uri = Utils.toUri(filePath);
     let result =
-      switch (State.getFullFromCmt(uri, state)) {
+      switch (State.getFullFromCmt(~state, ~uri)) {
       | Error(message) =>
         prerr_endline(message);
         "[]";
       | Ok((package, full)) =>
-        Hashtbl.replace(state.lastDefinitions, uri, full);
-        autocomplete(~currentFile, ~full, ~package, ~pos, ~state);
+        autocomplete(~currentFile, ~full, ~package, ~pos, ~state)
       };
     print_endline(result);
   | _ => ()

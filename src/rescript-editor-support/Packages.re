@@ -1,6 +1,5 @@
 open Infix;
 open TopTypes;
-// open BuildCommand;
 
 let escapePreprocessingFlags = flag =>
   /* ppx escaping not supported on windows yet */
@@ -51,52 +50,15 @@ let makePathsForModule =
   (pathsForModule, nameForPath);
 };
 
-let newBsPackage = (~reportDiagnostics, state, rootPath) => {
+let newBsPackage = rootPath => {
   let%try raw = Files.readFileResult(rootPath /+ "bsconfig.json");
   let config = Json.parse(raw);
-
-  let%try bsPlatform = BuildSystem.getBsPlatformDir(rootPath);
-
-  let bsb =
-    switch (Files.ifExists(bsPlatform /+ "lib" /+ "bsb.exe")) {
-    | Some(x) => x
-    | None =>
-      switch (
-        Files.ifExists(
-          bsPlatform /+ Lazy.force(BuildSystem.nodePlatform) /+ "bsb.exe",
-        )
-      ) {
-      | Some(x) => x
-      | None => failwith("can not locate bsb.exe in " ++ bsPlatform)
-      }
-    };
-
-  let buildCommand = bsb ++ " -make-world";
 
   Log.log({|📣 📣 NEW BSB PACKAGE 📣 📣|});
   /* failwith("Wat"); */
   Log.log("- location: " ++ rootPath);
-  Log.log("- bsPlatform: " ++ bsPlatform);
-  Log.log("- build command: " ++ buildCommand);
-
-  let%try () =
-    if (state.settings.autoRebuild) {
-      BuildCommand.runBuildCommand(
-        ~reportDiagnostics,
-        ~state,
-        ~rootPath,
-        Some(buildCommand),
-      );
-    } else {
-      Ok();
-    };
 
   let compiledBase = BuildSystem.getCompiledBase(rootPath);
-  let%try stdLibDirectory = BuildSystem.getStdlib(rootPath);
-  let%try compilerPath = BuildSystem.getCompiler(rootPath);
-  let mlfmtPath = state.settings.mlfmtLocation;
-  let%try refmtPath = BuildSystem.getRefmt(rootPath);
-  let%try tmpPath = BuildSystem.hiddenLocation(rootPath);
   let%try (dependencyDirectories, dependencyModules) =
     FindFiles.findDependencyFiles(~debug=true, rootPath, config);
   let%try_wrap compiledBase =
@@ -111,12 +73,6 @@ let newBsPackage = (~reportDiagnostics, state, rootPath) => {
   Log.log(
     "Got source directories " ++ String.concat(" - ", localSourceDirs),
   );
-  let localCompiledDirs =
-    localSourceDirs |> List.map(Files.fileConcat(compiledBase));
-  let localCompiledDirs =
-    namespace == None
-      ? localCompiledDirs : [compiledBase, ...localCompiledDirs];
-
   let localModules =
     FindFiles.findProjectFiles(
       ~debug=true,
@@ -156,7 +112,7 @@ let newBsPackage = (~reportDiagnostics, state, rootPath) => {
     };
   Log.log("Dependency dirs " ++ String.concat(" ", dependencyDirectories));
 
-  let (flags, opens) = {
+  let opens = {
     let flags =
       MerlinFile.getFlags(rootPath)
       |> RResult.withDefault([""])
@@ -176,61 +132,20 @@ let newBsPackage = (~reportDiagnostics, state, rootPath) => {
         opens,
         flags,
       );
-    (flags, opens);
-  };
-
-  let flags = {
-    let jsPackageMode =
-      {
-        let specs = config |> Json.get("package-specs");
-        let spec =
-          switch (specs) {
-          | Some(Json.Array([item, ..._])) => Some(item)
-          | Some(Json.Object(_)) => specs
-          | _ => None
-          };
-        spec |?> Json.get("module") |?> Json.string;
-      }
-      |? "commonjs";
-    let flags =
-      switch (jsPackageMode) {
-      | "es6" as packageMode
-      | "es6-global" as packageMode => [
-          "-bs-package-name",
-          config |> Json.get("name") |?> Json.string |? "unnamed",
-          ...packageMode == "es6"
-               ? ["-bs-package-output", "es6:node_modules/.lsp", ...flags]
-               : flags,
-        ]
-      | _ => flags
-      };
-    /* flags */
-    ["-bs-no-builtin-ppx", ...flags];
+    opens;
   };
 
   let interModuleDependencies = Hashtbl.create(List.length(localModules));
 
   {
     rootPath,
-    rebuildTimer: 0.,
     localModules: localModules |> List.map(fst),
     dependencyModules: dependencyModules |> List.map(fst),
     pathsForModule,
     nameForPath,
-    buildCommand: state.settings.autoRebuild ? Some(buildCommand) : None,
     opens,
-    tmpPath,
     namespace,
-    compilationFlags: flags |> String.concat(" "),
     interModuleDependencies,
-    includeDirectories:
-      localCompiledDirs @ dependencyDirectories @ [stdLibDirectory],
-
-    compilerPath,
-    mlfmtPath,
-    refmtPath: Some(refmtPath),
-    /*** TODO detect this from node_modules */
-    lispRefmtPath: None,
   };
 };
 
@@ -249,7 +164,7 @@ let findRoot = (uri, packagesByRoot) => {
   loop(Filename.dirname(path));
 };
 
-let getPackage = (~reportDiagnostics, uri, state) =>
+let getPackage = (uri, state) =>
   if (Hashtbl.mem(state.rootForUri, uri)) {
     Ok(
       Hashtbl.find(
@@ -272,14 +187,7 @@ let getPackage = (~reportDiagnostics, uri, state) =>
           ),
         );
       | `Bs(rootPath) =>
-        let%try package = newBsPackage(~reportDiagnostics, state, rootPath);
-        Files.mkdirp(package.tmpPath);
-        let package = {
-          ...package,
-          refmtPath: state.settings.refmtLocation |?? package.refmtPath,
-          lispRefmtPath:
-            state.settings.lispRefmtLocation |?? package.lispRefmtPath,
-        };
+        let%try package = newBsPackage(rootPath);
         Hashtbl.replace(state.rootForUri, uri, package.rootPath);
         Hashtbl.replace(state.packagesByRoot, package.rootPath, package);
         Ok(package);
