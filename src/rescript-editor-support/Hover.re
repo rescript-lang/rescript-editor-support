@@ -152,7 +152,11 @@ let newHover = (~rootUri, ~file: SharedTypes.file, ~getModule, loc) => {
               ),
               docstring,
             ]
-          | `Attribute(_) => [Some(typeString), docstring]
+          | `Attribute({typ}) => [
+              // TODO: show complete type def
+              Some(Shared.typeToString(typ)),
+              docstring,
+            ]
           };
 
         let parts = parts @ [Some(uri)];
