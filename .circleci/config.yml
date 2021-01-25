@@ -213,7 +213,6 @@ jobs:
             pwd
             echo "Versions"
             node --version
-            npm --version
       - restore_cache:
           keys:
           - v0-opam-cache-{{ arch }}
