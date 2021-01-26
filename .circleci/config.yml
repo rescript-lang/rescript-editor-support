@@ -211,10 +211,12 @@ jobs:
           environment:
             PATH: /cygdrive/c/Program Files/nodejs:/usr/local/bin:/usr/bin:/cygdrive/c/Windows/system32:/cygdrive/c/Windows:/cygdrive/c/Windows/System32/Wbem:/cygdrive/c/Windows/System32/WindowsPowerShell/v1.0
           command: |
+            cd /cygdrive/c/Users/circleci/project
             pwd
             ls -l
             echo "Versions"
             node --version
+            npm --version
       - restore_cache:
           keys:
           - v0-opam-cache-{{ arch }}
