@@ -46,6 +46,7 @@ orbs:
               environment:
                 PATH: /usr/local/bin:/usr/bin:/cygdrive/c/Windows/system32:/cygdrive/c/Windows:/cygdrive/c/Windows/System32/Wbem:/cygdrive/c/Windows/System32/WindowsPowerShell/v1.0
               command: |
+                cd /cygdrive/c/Users/circleci/project
                 [ -d _opam ] || opam switch create . ocaml-variants.4.06.1+mingw64c --deps-only --yes -vvv
 
 executors:
@@ -226,6 +227,7 @@ jobs:
           environment:
             PATH: /cygdrive/c/Program Files/nodejs:/usr/local/bin:/usr/bin:/cygdrive/c/Windows/system32:/cygdrive/c/Windows:/cygdrive/c/Windows/System32/Wbem:/cygdrive/c/Windows/System32/WindowsPowerShell/v1.0
           command: |
+            cd /cygdrive/c/Users/circleci/project
             eval $(opam env)
             opam install reason.3.6.0 dune.1.11.4 ocaml-migrate-parsetree.1.3.1 ppx_tools_versioned uri --yes | cat
       - save_cache:
