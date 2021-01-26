@@ -37,7 +37,6 @@ orbs:
               name: Init opam
               shell: C:/tools/cygwin/bin/bash.exe -leo pipefail
               command: |
-                export PATH=$PATH:/usr/local/bin:/usr/bin
                 [ -d ~/.opam ] || opam init default 'https://github.com/fdopen/opam-repository-mingw.git#opam2' --bare --disable-sandboxing
       create_switch:
         steps:
