@@ -299,36 +299,40 @@ let findDependencyFiles = (~debug, base, config) => {
                  let namespace = getNamespace(inner);
                  let directories =
                    getSourceDirectories(~includeDev=false, loc, inner);
-                 let%opt compiledBase = BuildSystem.getCompiledBase(loc);
-                 /* |! "No compiled base found"; */
-                 if (debug) {
-                   Log.log("Compiled base: " ++ compiledBase);
-                 };
-                 let compiledDirectories =
-                   directories |> List.map(Files.fileConcat(compiledBase));
-                 let compiledDirectories =
-                   namespace == None
-                     ? compiledDirectories
-                     : [compiledBase, ...compiledDirectories];
-                 let files =
-                   findProjectFiles(
-                     ~debug,
-                     namespace,
-                     loc,
-                     directories,
-                     compiledBase,
-                   );
-                 /* let files =
-                    switch (namespace) {
-                    | None =>
-                       files
-                    | Some(namespace) =>
-                      files
-                      |> List.map(((name, paths)) =>
-                           (namespace ++ "-" ++ name, paths)
-                         )
-                    }; */
-                 Some((compiledDirectories, files));
+                 Monads.Option.bind(
+                   BuildSystem.getCompiledBase(loc),
+                   ~f=compiledBase => {
+                    /* |! "No compiled base found"; */
+                    if (debug) {
+                      Log.log("Compiled base: " ++ compiledBase);
+                    };
+                    let compiledDirectories =
+                      directories |> List.map(Files.fileConcat(compiledBase));
+                    let compiledDirectories =
+                      namespace == None
+                        ? compiledDirectories
+                        : [compiledBase, ...compiledDirectories];
+                    let files =
+                      findProjectFiles(
+                        ~debug,
+                        namespace,
+                        loc,
+                        directories,
+                        compiledBase,
+                      );
+                    /* let files =
+                      switch (namespace) {
+                      | None =>
+                         files
+                      | Some(namespace) =>
+                        files
+                        |> List.map(((name, paths)) =>
+                             (namespace ++ "-" ++ name, paths)
+                           )
+                      }; */
+                    Some((compiledDirectories, files));
+                  },
+                );
                | None => None
                };
              }
@@ -343,8 +347,12 @@ let findDependencyFiles = (~debug, base, config) => {
        });
   let (directories, files) = List.split(depFiles);
   let files = List.concat(files);
-  let%try stdlibDirectory = BuildSystem.getStdlib(base);
-  let directories = [stdlibDirectory, ...List.concat(directories)];
-  let results = files @ collectFiles(stdlibDirectory);
-  Ok((directories, results));
+  Monads.Result.bind(
+    BuildSystem.getStdlib(base),
+    ~f=stdlibDirectory => {
+      let directories = [stdlibDirectory, ...List.concat(directories)];
+      let results = files @ collectFiles(stdlibDirectory);
+      Ok((directories, results));
+    },
+  );
 };

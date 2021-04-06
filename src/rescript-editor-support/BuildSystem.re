@@ -34,6 +34,7 @@ let getCompiledBase = root => {
   Files.ifExists(root /+ "lib" /+ "bs");
 };
 let getStdlib = base => {
-  let%try_wrap bsPlatformDir = getBsPlatformDir(base);
-  bsPlatformDir /+ "lib" /+ "ocaml";
+  Monads.Result.map(getBsPlatformDir(base), ~f=bsPlatformDir =>
+    bsPlatformDir /+ "lib" /+ "ocaml"
+  );
 };
