@@ -515,6 +515,7 @@ let processCompletable ~findItems ~full ~package ~pos ~rawOpens
            mkItem ~name ~kind:(kindToInt item) ~deprecated
              ~detail:(detail name item) ~docstring ~uri ~pos_lnum)
   | Cpipe (pipe, partialName) -> (
+    let stringModulePath = ["Js"; "String2"] in
     let getModulePath path =
       let rec loop (path : Path.t) =
         match path with
@@ -522,7 +523,9 @@ let processCompletable ~findItems ~full ~package ~pos ~rawOpens
         | Pdot (p, s, _) -> s :: loop p
         | Papply _ -> []
       in
-      match loop path with _ :: rest -> List.rev rest | [] -> []
+      match path with
+      | Path.Pident id when Ident.name id = "string" -> stringModulePath
+      | _ -> ( match loop path with _ :: rest -> List.rev rest | [] -> [])
     in
     let getLhsPath ~pipeId ~partialName =
       match [pipeId] |> findItems ~exact:true with
@@ -539,7 +542,7 @@ let processCompletable ~findItems ~full ~package ~pos ~rawOpens
     let lhsPath =
       match pipe with
       | PipeId pipeId -> getLhsPath ~pipeId ~partialName
-      | PipeString -> Some (["Js"; "String2"], partialName)
+      | PipeString -> Some (stringModulePath, partialName)
     in
     let removePackageOpens modulePath =
       match modulePath with
