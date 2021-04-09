@@ -516,6 +516,7 @@ let processCompletable ~findItems ~full ~package ~pos ~rawOpens
              ~detail:(detail name item) ~docstring ~uri ~pos_lnum)
   | Cpipe (pipe, partialName) -> (
     let arrayModulePath = ["Js"; "Array2"] in
+    let listModulePath = ["Belt"; "List"] in
     let optionModulePath = ["Belt"; "Option"] in
     let stringModulePath = ["Js"; "String2"] in
     let getModulePath path =
@@ -527,6 +528,7 @@ let processCompletable ~findItems ~full ~package ~pos ~rawOpens
       in
       match path with
       | Path.Pident id when Ident.name id = "array" -> arrayModulePath
+      | Path.Pident id when Ident.name id = "list" -> listModulePath
       | Path.Pident id when Ident.name id = "option" -> optionModulePath
       | Path.Pident id when Ident.name id = "string" -> stringModulePath
       | _ -> ( match loop path with _ :: rest -> List.rev rest | [] -> [])
