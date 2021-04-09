@@ -515,6 +515,7 @@ let processCompletable ~findItems ~full ~package ~pos ~rawOpens
            mkItem ~name ~kind:(kindToInt item) ~deprecated
              ~detail:(detail name item) ~docstring ~uri ~pos_lnum)
   | Cpipe (pipe, partialName) -> (
+    let arrayModulePath = ["Js"; "Array2"] in
     let stringModulePath = ["Js"; "String2"] in
     let getModulePath path =
       let rec loop (path : Path.t) =
@@ -525,6 +526,7 @@ let processCompletable ~findItems ~full ~package ~pos ~rawOpens
       in
       match path with
       | Path.Pident id when Ident.name id = "string" -> stringModulePath
+      | Path.Pident id when Ident.name id = "array" -> arrayModulePath
       | _ -> ( match loop path with _ :: rest -> List.rev rest | [] -> [])
     in
     let getLhsPath ~pipeId ~partialName =
@@ -543,6 +545,7 @@ let processCompletable ~findItems ~full ~package ~pos ~rawOpens
       match pipe with
       | PipeId pipeId -> getLhsPath ~pipeId ~partialName
       | PipeString -> Some (stringModulePath, partialName)
+      | PipeArray -> Some (arrayModulePath, partialName)
     in
     let removePackageOpens modulePath =
       match modulePath with
