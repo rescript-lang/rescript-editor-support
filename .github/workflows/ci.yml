@@ -45,5 +45,7 @@ jobs:
 
     - run: npm install
 
-    - run: opam install . --deps-only
-    - run: eval $(opam env) && opam exec -- dune build
+    - run: opam pin add rescript-editor-support.dev . --no-action
+    - run: opam depext rescript-editor-support --yes --with-doc --with-test
+    - run: opam install . --deps-only --with-doc --with-test
+    - run: opam exec -- dune build
