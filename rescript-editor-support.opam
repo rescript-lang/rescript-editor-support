@@ -9,11 +9,7 @@ homepage: "https://github.com/rescript-lang/rescript-editor-support"
 bug-reports:
   "https://github.com/rescript-lang/rescript-editor-support/issues"
 depends: [
-  "dune" {>= "2.7"}
   "ocaml" {= "4.06.1"}
-]
-build: [
-  ["dune" "build" "-p" name "@install"]
 ]
 dev-repo: "git+https://github.com/rescript-lang/rescript-editor-support.git"
 

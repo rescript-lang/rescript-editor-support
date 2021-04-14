@@ -8,7 +8,12 @@ on:
 
 jobs:
   test:
-    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    runs-on: ${{matrix.os}}
 
     steps:
     - uses: actions/checkout@v2.3.4
@@ -17,13 +22,7 @@ jobs:
       uses: actions/cache@v2.1.5
       with:
         path: ~/.opam
-        key: macos-latest-ocaml-4.06.1
-
-    - name: Cache npm
-      uses: actions/cache@v2.1.5
-      with:
-        path: ~/.npm
-        key: macos-latest-node-14.4.0-${{hashFiles('package-lock.json')}}
+        key: ${{matrix.os}}-latest-ocaml-4.06.1
 
     - name: Use OCaml
       uses: avsm/setup-ocaml@v1.1.10
@@ -35,7 +34,17 @@ jobs:
       with:
         node-version: 14.4.0
 
-    - run: npm install
+    - run: npm ci
 
-    - run: opam install . --deps-only
-    - run: eval $(opam env) && opam exec -- dune build
+    - run: opam pin add rescript-editor-support.dev . --no-action
+    - run: opam install . --deps-only --with-doc --with-test
+
+    - run: eval $(opam env) && make
+      if: matrix.os != 'windows-latest'
+    - run: "& $env:CYGWIN_ROOT\\bin\\ocaml-env exec -- make"
+      if: matrix.os == 'windows-latest'
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ${{matrix.os}}-rescript-editor-support.exe
+        path: lib/rescript-editor-support.exe
