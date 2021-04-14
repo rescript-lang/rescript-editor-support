@@ -14,7 +14,7 @@ let pathStartsWith text prefix =
   String.length prefix <= String.length text
   && pathEq (String.sub text 0 (String.length prefix)) prefix
 
-let sliceToEnd str pos = String.sub str pos (String.length str - pos)
+let sliceToEndaaa str pos = String.sub str pos (String.length str - pos)
 
 let relpath base path =
   if pathStartsWith path base then
