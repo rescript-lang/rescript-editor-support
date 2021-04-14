@@ -1,0 +1,5 @@
+{
+  "name": "tryit",
+  "sources": "src",
+  "bs-dependencies": ["reason-react"]
+}
