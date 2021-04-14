@@ -8,7 +8,15 @@ on:
 
 jobs:
   test:
-    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+
+    runs-on: ${{matrix.os}}
 
     steps:
     - uses: actions/checkout@v2.3.4
