@@ -1,4 +1,0 @@
-(dirs :standard \ examples)
-(env
-    (dev
-      (flags (:standard -warn-error -A))))
