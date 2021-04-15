@@ -25,13 +25,13 @@ jobs:
       uses: actions/cache@v2.1.5
       with:
         path: ~/.opam
-        key: macos-latest-ocaml-4.06.1
+        key: macos-latest-ocaml-4.06.1-v2
 
     - name: Cache npm
       uses: actions/cache@v2.1.5
       with:
         path: ~/.npm
-        key: macos-latest-node-14.4.0-2${{hashFiles('package-lock.json')}}
+        key: macos-latest-node-14.4.0-${{hashFiles('package-lock.json')}}
 
     - name: Use OCaml
       uses: avsm/setup-ocaml@v2
