@@ -49,4 +49,4 @@ jobs:
     - run: opam install . --deps-only --with-doc --with-test
     - name: XXX
       shell: bash
-      run: opam exec -- dune build
+      run: dune build
