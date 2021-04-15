@@ -34,7 +34,7 @@ jobs:
         key: macos-latest-node-14.4.0-${{hashFiles('package-lock.json')}}
 
     - name: Use OCaml
-      uses: avsm/setup-ocaml@v1.1.10
+      uses: avsm/setup-ocaml@v2
       with:
         ocaml-version: 4.06.1
 
