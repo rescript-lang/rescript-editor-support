@@ -49,4 +49,6 @@ jobs:
     - run: opam install . --deps-only --with-doc --with-test
     - name: XXX
       shell: bash
-      run: dune build
+      run: |
+        eval $(opam env)
+        dune build
