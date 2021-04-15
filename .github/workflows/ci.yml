@@ -14,11 +14,16 @@ jobs:
         os:
           - macos-latest
           - ubuntu-latest
-          - windows-latest
+        ocaml-compiler:
+          - ocaml-base-compiler.4.06.1
+        include:
+          - os: windows-latest
+            ocaml-compiler: ocaml-variants.4.06.1+mingw64c
 
-    runs-on: ${{matrix.os}}
+      runs-on: ${{matrix.os}}
 
     steps:
+    - name: Checkout code
     - uses: actions/checkout@v2.3.4
 
     - name: Cache OCaml's opam
@@ -42,8 +47,8 @@ jobs:
       with:
         node-version: 14.4.0
 
-    - run: npm install
+    - run: npm ci
 
-    - run: opam pin add rescript-editor-support.dev . --no-action
-    - run: opam install . --deps-only --with-doc --with-test
+#    - run: opam pin add rescript-editor-support.dev . --no-action
+    - run: opam install . --deps-only
     - run: opam exec -- dune build
