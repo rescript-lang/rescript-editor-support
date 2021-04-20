@@ -36,8 +36,8 @@ jobs:
 
     - run: npm ci
 
-    # - run: opam pin add rescript-editor-support.dev . --no-action
-    - run: opam install . --deps-only --with-doc --with-test
+    - run: opam pin add rescript-editor-support.dev . --no-action
+    - run: opam install . --deps-only
 
     - run: eval $(opam env) && make
       if: matrix.os != 'windows-latest'
