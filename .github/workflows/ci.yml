@@ -49,7 +49,7 @@ jobs:
     # Also avoids artifacts upload permission loss:
     # https://github.com/actions/upload-artifact/tree/ee69f02b3dfdecd58bb31b4d133da38ba6fe3700#permission-loss
     - name: Compress files
-      run: tar -cvf rescript-editor-support.tar lib/rescript-editor-support.exe
+      run: tar -cvf rescript-editor-support.tar -C lib rescript-editor-support.exe
 
     - uses: actions/upload-artifact@v2
       with:
