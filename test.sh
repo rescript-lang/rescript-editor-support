@@ -1,3 +1,5 @@
+#!/bin/bash
+
 function exp {
   echo "$(dirname $1)/expected/$(basename $1).txt"
 }
