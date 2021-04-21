@@ -43,11 +43,11 @@ jobs:
 
     - run: eval $(opam env) && make test
       if: matrix.os != 'windows-latest'
-    - run: "& $env:CYGWIN_ROOT\\bin\\ocaml-env exec -- make&& cd tests && npm install && node_modules/.bin/rescript build -with-deps && cd .."
+    - run: "& $env:CYGWIN_ROOT\\bin\\ocaml-env exec -- make && cd tests && npm install && node_modules/.bin/rescript build -with-deps && cd .."
       if: matrix.os == 'windows-latest'
     - run: "dos2unix ./test.sh"
       if: matrix.os == 'windows-latest'
-    - run: "& $env:CYGWIN_ROOT\\bin\\bash ./test.sh"
+    - run: "& $env:CYGWIN_ROOT\\bin\\ocaml-env exec -- ./test.sh"
       if: matrix.os == 'windows-latest'
 
     # Also avoids artifacts upload permission loss:
