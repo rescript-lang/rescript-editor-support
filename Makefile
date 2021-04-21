@@ -38,7 +38,7 @@ tests/lib/.compiler.log: tests/node_modules/.bin/rescript
 
 test: dce tests/lib/.compiler.log
 	./blablabla.sh
-	./test.sh
+	/bin/sh ./test.sh
 
 clean:
 	git clean -dfx src
