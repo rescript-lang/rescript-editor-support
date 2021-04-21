@@ -1,14 +1,22 @@
+echo "test start"
+
 function exp {
   echo "$(dirname $1)/expected/$(basename $1).txt"
 }
+
+echo "loop"
 
 for file in tests/src/*.res; do
   lib/rescript-editor-support.exe test $file &> $(exp $file)
 done
 
+echo "done loop"
+
 warningYellow='\033[0;33m'
 successGreen='\033[0;32m'
 reset='\033[0m'
+
+echo "defined colors"
 
 diff=$(git ls-files --modified tests/src/expected)
 if [[ $diff = "" ]]; then
@@ -17,3 +25,5 @@ else
   printf "${warningYellow}⚠️ There are unstaged differences in tests/! Did you break a test?\n${diff}\n${reset}"
   exit 1
 fi
+
+echo "done done"
