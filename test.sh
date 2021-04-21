@@ -10,7 +10,9 @@ echo $(dirname "hello\\world")
 echo "loop"
 
 for file in tests/src/*.res; do
+  echo "iterate"
   lib/rescript-editor-support.exe test $file &> $(exp $file)
+  echo "iterate done"
 done
 
 echo "done loop"
