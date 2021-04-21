@@ -30,14 +30,14 @@ build-native: lib/rescript-editor-support.exe depend
 dce: build-native
 	node_modules/.bin/reanalyze -dce-cmt src -suppress src/vendor
 
-tests/node_modules/rescript:
+tests/node_modules/.bin/rescript:
 	@cd tests && npm install
 
-tests/lib/.compiler.log: tests/node_modules/rescript
-	@cd tests && node_modules/.bin/rescript
+tests/lib/.compiler.log: tests/node_modules/.bin/rescript
+	@cd tests && node_modules/.bin/rescript build -with-deps
 
 test: dce tests/lib/.compiler.log
-	tests/test.sh
+	./test.sh
 
 clean:
 	git clean -dfx src
