@@ -4,6 +4,9 @@ function exp {
   echo "$(dirname $1)/expected/$(basename $1).txt"
 }
 
+echo $(dirname "hello/world")
+echo $(dirname "hello\\world")
+
 echo "loop"
 
 for file in tests/src/*.res; do
