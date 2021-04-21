@@ -43,7 +43,7 @@ jobs:
 
     - run: eval $(opam env) && make test
       if: matrix.os != 'windows-latest'
-    - run: "unix2dos test.sh && & $env:CYGWIN_ROOT\\bin\\ocaml-env exec -- make test"
+    - run: "dos2unix test.sh && & $env:CYGWIN_ROOT\\bin\\ocaml-env exec -- make test"
       if: matrix.os == 'windows-latest'
 
     # Also avoids artifacts upload permission loss:
