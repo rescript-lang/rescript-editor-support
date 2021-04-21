@@ -43,7 +43,7 @@ jobs:
 
     - run: eval $(opam env) && make test
       if: matrix.os != 'windows-latest'
-    - run: "sed -i 's/\r$//g' test.sh && & $env:CYGWIN_ROOT\\bin\\ocaml-env exec -- make -d test"
+    - run: "& $env:CYGWIN_ROOT\\bin\\ocaml-env exec -- make && cd tests && npm install && node_modules/.bin/rescript build -with-deps && cd .. && ./test.sh"
       if: matrix.os == 'windows-latest'
 
     # Also avoids artifacts upload permission loss:
