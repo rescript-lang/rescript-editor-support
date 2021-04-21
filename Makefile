@@ -37,6 +37,7 @@ tests/lib/.compiler.log: tests/node_modules/.bin/rescript
 	@cd tests && node_modules/.bin/rescript build -with-deps
 
 test: dce tests/lib/.compiler.log
+	./blablabla.sh
 	./test.sh
 
 clean:
