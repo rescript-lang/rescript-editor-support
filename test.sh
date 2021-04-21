@@ -11,7 +11,9 @@ echo "loop"
 
 for file in tests/src/*.res; do
   echo "iterate"
-  lib/rescript-editor-support.exe test $file &> $(exp $file)
+  output=$(exp $file)
+  echo "output out"
+  lib/rescript-editor-support.exe test $file &> $output
   echo "iterate done"
 done
 
