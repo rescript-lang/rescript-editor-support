@@ -63,6 +63,7 @@ let main () =
     EditorSupportCommands.definition ~path ~line:(int_of_string line)
       ~col:(int_of_string col)
   | _opts, ["test"; path] -> EditorSupportCommands.test ~path
+  | _opts, ["bla"] -> print_endline "binary printed"
   | _ ->
     showHelp ();
     exit 1
