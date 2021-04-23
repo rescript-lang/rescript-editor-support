@@ -20,8 +20,6 @@ depend:
 SOURCE_FILES = $(shell $(OCAMLDEP) -sort `find src -name "*.ml"` | sed -E "s/\.ml/.cmx/g")
 
 lib/rescript-editor-support.exe: $(SOURCE_FILES)
-	echo "-----------test----------"
-	echo $(shell dirname "hello/world")
 	@echo Linking...
 	@$(OCAMLOPT) $(OCAMLFLAGS) -O2 -o ./lib/rescript-editor-support.exe \
 		-I +compiler-libs unix.cmxa str.cmxa ocamlcommon.cmxa $(INCLUDES) $(SOURCE_FILES)

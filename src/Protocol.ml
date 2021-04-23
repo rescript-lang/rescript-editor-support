@@ -46,7 +46,7 @@ let stringifyMarkupContent (m: markupContent) =
 
 let stringifyCompletionItem c =
   Printf.sprintf {|{
-    "labela": "%s",
+    "label": "%s",
     "kind": %i,
     "tags": %s,
     "detail": "%s",
